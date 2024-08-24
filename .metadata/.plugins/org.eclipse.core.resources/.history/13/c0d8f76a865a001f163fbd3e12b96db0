@@ -1,0 +1,349 @@
+/*
+ * StudentManagementSystem.c
+ *
+ *  Created on: Aug 9, 2024
+ *      Author: Muhammed Ayman
+ *
+ *  Student Management System.
+ */
+
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+//Menu for user selection.
+enum menu {
+	EXIT, add, display, search, update, delete, averageGPA, highestGPA
+};
+
+//Structure for strudent's data.
+struct student {
+	int id;
+	char name[50];
+	int age;
+	float gpa;
+};
+
+//For dynamic memory allocation (Linked list).
+struct node {
+	struct student data;
+	struct node* next;
+};
+
+struct node* head = NULL;		//Making the head at null at the beginning.
+
+void addStudent(const struct student *const ptr) {
+	struct node* link = (struct node*)malloc(sizeof(struct node));
+
+	//If id exists it display an message.
+	struct node* ptrIdChecker = head;
+
+	while(ptrIdChecker != NULL) {
+		if(ptrIdChecker->data.id == ptr->id) {
+			puts("\nThis student already exist.");
+			return;
+		}
+		ptrIdChecker = ptrIdChecker->next;
+	}
+
+	//If there no nodes, it make a new one.
+	if(head == NULL) {
+		//Adding data to node.
+		link->data.id = ptr->id;
+		strcpy(link->data.name, ptr->name);
+		link->data.age = ptr->age;
+		link->data.gpa = ptr->gpa;
+		//Pointing to new addresses.
+		link->next = head;
+		head = link;
+
+		puts("\nStudent added successfully.");
+		return;
+	}
+	else {
+		//Adding elements at the end of linked list.
+		struct node* ptrAtLast = head;
+		//To know where is the last node.
+		while(ptrAtLast->next != NULL) {
+			ptrAtLast = ptrAtLast->next;
+		}
+		//Adding data to node.
+		link->data.id = ptr->id;
+		strcpy(link->data.name, ptr->name);
+		link->data.age = ptr->age;
+		link->data.gpa = ptr->gpa;
+		//Pointing to new addresses.
+		link->next = NULL;
+		ptrAtLast->next = link;
+
+		puts("\nStudent added successfully.");
+		return;
+	}
+	//If something happen like heap is full.
+	puts("\nMemory is full!");
+}
+
+void displayStudents(void) {
+	struct node* ptrDisplay = head;
+
+	//If there is no nodes.
+	if(ptrDisplay == NULL) {
+		puts("\nNo students are present.");
+		return;
+	}
+	else {
+		//Printing all details of students.
+		while(ptrDisplay != NULL) {
+			printf("\nID : %d"
+					"\nName : %s"
+					"\nAge : %d"
+					"\nGPA : %0.1f\n\n", ptrDisplay->data.id, ptrDisplay->data.name, ptrDisplay->data.age, ptrDisplay->data.gpa);
+			ptrDisplay = ptrDisplay->next;
+		}
+		return;
+	}
+}
+
+void searchStudentByID(int id) {
+	struct node* ptrsearch = head;
+
+	//Searching for student by ID.
+	while(ptrsearch != NULL) {
+		if(id == ptrsearch->data.id) {
+			printf("\nID : %d"
+					"\nName : %s"
+					"\nAge : %d"
+					"\nGPA : %0.1f\n\n",
+					ptrsearch->data.id,
+					ptrsearch->data.name,
+					ptrsearch->data.age,
+					ptrsearch->data.gpa);
+			return;
+		}
+		ptrsearch = ptrsearch->next;
+	}
+	//If ID not found
+	puts("\nStudent not found.");
+}
+
+void updateStudent(int id) {
+	struct node* ptrUpdate = head;
+
+	while(ptrUpdate != NULL) {
+		if(id == ptrUpdate->data.id) {
+			puts("New name:");
+			gets(ptrUpdate->data.name);
+
+			puts("New age:");
+			scanf("%d", &ptrUpdate->data.age);
+
+			puts("New GPA:");
+			scanf("%f", &ptrUpdate->data.gpa);
+
+			puts("\nStudent updated successfully.");
+			return;
+		}
+		ptrUpdate = ptrUpdate->next;
+	}
+	//If ID not found.
+	puts("\nStudent not found.");
+}
+
+void deleteStudent(int id) {
+	struct node* ptrDelete = head;
+	struct node* ptrConnector = head;
+
+	//If there is no students.
+	if(ptrDelete == NULL) {
+		puts("\nNo students are present.");
+		return;
+	}
+
+	//If there is only one node in linked list.
+	if(ptrDelete->next == NULL && id == ptrDelete->data.id) {
+		head = NULL;
+		free(ptrDelete);
+		puts("\nStudent Deleted Successfully.");
+		return;
+	}
+
+	//If the id is the first one in linked list.
+	if(id == ptrDelete->data.id) {
+		head = ptrDelete->next;
+		free(ptrDelete);
+		puts("\nStudent Deleted Successfully.");
+		return;
+	}
+
+	//To delete any other node in linked list.
+	while(ptrConnector != NULL) {
+		if(ptrConnector->next != NULL && id == ptrConnector->next->data.id) {
+			ptrDelete = ptrDelete->next;		//put the delete pointer in the node to be delete and the connector pointer in the node before it.
+			ptrConnector->next = ptrDelete->next;
+			free(ptrDelete);
+			puts("\nStudent Deleted Successfully.");
+			return;
+		}
+		ptrDelete = ptrDelete->next;
+		ptrConnector = ptrConnector->next;
+	}
+	//If ID not found.
+	puts("\nStudent not found.");
+}
+
+float calculateAverageGPA(void) {
+	struct node* ptr_calc_GPA_avg = head;
+	int size;
+	float sum = 0;
+
+	//Return 0.0 if there no nodes.
+	if(ptr_calc_GPA_avg == NULL) {
+		return 0.0;
+	}
+	//Return the average.
+	else {
+		//Calculating the size of linked list.
+		for(size = 0; ptr_calc_GPA_avg != NULL; size++) {
+			ptr_calc_GPA_avg = ptr_calc_GPA_avg->next;
+		}
+
+		ptr_calc_GPA_avg = head;		//Reset pointer to the head again.
+
+		//Calculate the sum of GPA of students.
+		while(ptr_calc_GPA_avg != NULL) {
+			sum += ptr_calc_GPA_avg->data.gpa;
+			ptr_calc_GPA_avg = ptr_calc_GPA_avg->next;
+		}
+
+		return sum / size;
+	}
+}
+
+void searchHighestGPA(void) {
+	struct node* ptr_search_highest_GPA = head;
+
+	//If there is no nodes.
+	if(ptr_search_highest_GPA == NULL) {
+		puts("\nNo students are present.");
+		return;
+	}
+
+	float highest = ptr_search_highest_GPA->data.gpa;		//Assuming the highest GPA is the first one.
+
+	//Knowing the real highest GPA in the linked list.
+	while(ptr_search_highest_GPA != NULL) {
+		if(ptr_search_highest_GPA->data.gpa > highest) {
+			highest = ptr_search_highest_GPA->data.gpa;
+		}
+		ptr_search_highest_GPA = ptr_search_highest_GPA->next;
+	}
+
+	ptr_search_highest_GPA = head;		//Reset pointer to the head again.
+
+	//Printing the student with the highest GPA.
+	while(ptr_search_highest_GPA != NULL) {
+		if(highest == ptr_search_highest_GPA->data.gpa) {
+			printf("\nID : %d"
+					"\nName : %s"
+					"\nAge : %d"
+					"\nGPA : %0.1f\n\n",
+					ptr_search_highest_GPA->data.id,
+					ptr_search_highest_GPA->data.name,
+					ptr_search_highest_GPA->data.age,
+					ptr_search_highest_GPA->data.gpa);
+
+			return;
+		}
+		ptr_search_highest_GPA = ptr_search_highest_GPA->next;
+	}
+}
+
+int main(void) {
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
+
+	//Menu List
+	enum menu choice;
+
+	do {
+		puts("-----------------------------------------");
+		puts("Menu List:");
+		printf("1 - Add a student."
+				"\n2 - Display All Students."
+				"\n3 - Search for a Student by ID."
+				"\n4 - Update Student Information."
+				"\n5 - Delete a Student."
+				"\n6 - Calculate Average GPA."
+				"\n7 - Find Student with Highest GPA"
+				"\n0 - EXIT.\n");
+		puts("What is your choice?");
+		puts("-----------------------------------------");
+		scanf("%d", (int*)&choice);
+		puts("-----------------------------------------");
+
+		switch(choice) {
+		case add:
+			struct student st;
+
+			puts("ID:");
+			scanf("%d", &st.id);
+			getchar();			//To clear the buffer after scanf.
+			puts("Name:");
+			gets(st.name);
+			puts("Age:");
+			scanf("%d", &st.age);
+			puts("GPA:");
+			scanf("%f", &st.gpa);
+
+			addStudent(&st);
+			break;
+
+		case display:
+			displayStudents();
+			break;
+
+		case search:
+			int idSearch;
+
+			puts("ID:");
+			scanf("%d", &idSearch);
+
+			searchStudentByID(idSearch);
+			break;
+
+		case update:
+			int idUpdate;
+
+			puts("ID:");
+			scanf("%d", &idUpdate);
+			getchar();			//To clear the buffer after scanf.
+
+			updateStudent(idUpdate);
+			break;
+
+		case delete:
+			int idDelete;
+
+			puts("ID:");
+			scanf("%d", &idDelete);
+
+			deleteStudent(idDelete);
+			break;
+
+		case averageGPA:
+			printf("\nAverage GPA : %0.2f\n", calculateAverageGPA());
+			break;
+
+		case highestGPA:
+			searchHighestGPA();
+			break;
+
+		case EXIT:
+			puts("Exiting...");
+			return 0;
+
+		default:
+			puts("Try again!");
+		}
+	} while(1);
+}
